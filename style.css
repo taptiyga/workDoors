@@ -1,3 +1,8 @@
+*{
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
 body {
     font-family: Arial;
     background: #f3f3f3;
@@ -6,13 +11,13 @@ body {
 }
 
 h1 {
-    margin-bottom: 30px;
+    margin-bottom: 15px;
 
   text-align: center;
 }
 
 #cardsContainer {
-    margin-top: 20px;
+    /* margin-top: 20px; */
     display: flex;
     flex-wrap: wrap;
     gap: 15px;
@@ -38,9 +43,8 @@ h1 {
 
 label {
     display: block;
-    margin: 6px auto;
+    margin: 0px auto;
     max-width: 600px;
-
 }
 
 input[type="number"],
@@ -60,7 +64,8 @@ button {
     cursor: pointer;
     /* margin-top: 10px; */
     display: block;
-    margin: 30px auto;
+    margin: 15px auto;
+    margin-bottom: 30px;
 }
 
 .remove-btn {
@@ -69,17 +74,20 @@ button {
     margin-top: 10px;
 }
 
-#totalSum {
+#totalSum,#workType {
     padding: 15px;
     background: #fff;
     border-radius: 8px;
     box-shadow: 0 2px 7px rgba(0, 0, 0, 0.15);
     font-size: 20px;
     font-weight: bold;
-    margin: 30px auto;
+    margin: 15px auto;
     max-width: 600px;
 }
-
+#workType{
+    outline: none;
+    border: none;
+}
 .portal-inner {
     border: 1px dashed #888;
     margin-top: 10px;
@@ -94,7 +102,9 @@ button {
         flex-direction: column;
         gap: 10px;
     }
-
+h1{
+    font-size: 22px;
+}
     .card {
         width: 100%;
         /* карточка занимает всю ширину */
