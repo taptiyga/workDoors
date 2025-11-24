@@ -1,123 +1,221 @@
+/* ===== ОСНОВНОЕ ===== */
 *{
-    box-sizing: border-box;
     margin: 0;
     padding: 0;
+    box-sizing: border-box;
 }
 body {
-    font-family: Arial;
-    background: #f3f3f3;
-    padding: 20px;
-    margin: 0;
+    padding: 50px 15px;
+    font-family: "Inter", sans-serif;
+    background: #f4f4f7;
+    color: #222;
 }
 
 h1 {
-    margin-bottom: 15px;
-
-  text-align: center;
+    text-align: center;
+    margin-bottom: 25px;
 }
 
+/* Центровка блока с типом работы */
+#workTypeContainer {
+    display: flex;
+    justify-content: center;
+    margin-bottom: 20px;
+}
+
+#workTypeContainer label {
+    font-size: 18px;
+    display: flex;
+    gap: 10px;
+    align-items: center;
+}
+
+#workType {
+    padding: 8px 14px;
+    border-radius: 10px;
+    border: 1px solid #ccc;
+}
+
+/* Центрирование кнопок */
+#buttonsContainer {
+    display: flex;
+    justify-content: center;
+    gap: 20px;
+    margin: 20px 0 30px;
+}
+
+#buttonsContainer button {
+    padding: 10px 20px;
+    font-size: 16px;
+    border-radius: 12px;
+    border: none;
+    cursor: pointer;
+    transition: 0.25s;
+}
+
+#addCard {
+    background: #4CAF50;
+    color: white;
+}
+
+#addCard:hover {
+    background: #3d9c41;
+    transform: translateY(-2px);
+}
+
+#delCard {
+    background: #ff4747;
+    color: white;
+}
+
+#delCard:hover {
+    background: #e42525;
+    transform: translateY(-2px);
+}
+
+/* ===== СЕТКА ДЛЯ КАРТОЧЕК ===== */
 #cardsContainer {
-    /* margin-top: 20px; */
     display: flex;
     flex-wrap: wrap;
-    gap: 15px;
-    /* расстояние между карточками */
+    justify-content: center;
+    gap: 20px;
+    max-width: 100%;
+    margin: 0 auto;
 }
 
+/* ===== КАРТОЧКА ===== */
 .card {
+    width: 100%;
+    max-width: 350px;
     background: white;
-    padding: 15px;
-    border-radius: 8px;
-    margin-bottom: 15px;
-    box-shadow: 0 2px 7px rgba(0, 0, 0, 0.15);
-    position: relative;
-    border-left: 6px solid #4b8bf5;
-    box-sizing: border-box;
-    width: 300px;
-    /* ограничение ширины карточки на десктопе */
+    border-radius: 18px;
+    padding: 20px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+    border: 1px solid #eee;
+    animation: card-appear 0.35s ease;
+    transition: 0.3s;
 }
 
-.card h3 {
-    margin: 0 0 10px 0;
+.card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 12px 28px rgba(0, 0, 0, 0.15);
 }
 
-label {
-    display: block;
-    margin: 0px auto;
-    max-width: 600px;
+/* ===== ЭЛЕМЕНТЫ КАРТОЧЕК ===== */
+.card label {
+    display: flex;
+    justify-content: space-between;
+    /* текст слева, чекбокс справа */
+    align-items: center;
+    margin: 10px 0;
+    font-size: 16px;
 }
 
-input[type="number"],
-select {
-    padding: 6px;
-    margin-top: 4px;
-    width: 100%;
-    box-sizing: border-box;
-}
-
-button {
+.card input,
+.card select {
     padding: 8px 12px;
-    border: none;
-    background: #4b8bf5;
-    color: white;
-    border-radius: 5px;
-    cursor: pointer;
-    /* margin-top: 10px; */
-    display: block;
-    margin: 15px auto;
-    margin-bottom: 30px;
-}
-
-.remove-btn {
-    background: #d64545;
+    border-radius: 10px;
+    border: 1px solid #ccc;
     width: 100%;
-    margin-top: 10px;
+    max-width: 140px;
+    /* min-width: 80px; */
+    transition: 0.25s;
 }
 
-#totalSum,#workType {
-    padding: 15px;
-    background: #fff;
-    border-radius: 8px;
-    box-shadow: 0 2px 7px rgba(0, 0, 0, 0.15);
-    font-size: 20px;
-    font-weight: bold;
-    margin: 15px auto;
-    max-width: 600px;
+.card input:focus,
+.card select:focus {
+    border-color: #0077ff;
+    box-shadow: 0 0 5px rgba(0, 119, 255, 0.4);
 }
-#workType{
-    outline: none;
+
+/* ===== ЧЕКБОКСЫ В КАРТОЧКАХ ===== */
+.card label input[type="checkbox"] {
+    order: 2;
+    /* после текста */
+    width: 24px;
+    height: 24px;
+    margin-left: 10px;
+    /* от текста */
+    accent-color: #4CAF50;
     border: none;
-}
-.portal-inner {
-    border: 1px dashed #888;
-    margin-top: 10px;
-    padding: 10px;
-    border-radius: 5px;
-    background: #fafafa;
+    /* убираем обводку */
+    outline: none;
+    cursor: pointer;
+    flex-shrink: 0;
+    /* не сжимаются */
 }
 
-/* --- Адаптация под мобильные --- */
-@media screen and (max-width: 600px) {
-    #cardsContainer {
-        flex-direction: column;
-        gap: 10px;
+/* ===== КНОПКА УДАЛЕНИЯ ===== */
+.delete-btn {
+    background: #ff4747;
+    color: white;
+    border: none;
+    padding: 10px 14px;
+    border-radius: 12px;
+    cursor: pointer;
+    margin-top: 15px;
+    transition: 0.25s;
+    width: 100%;
+    font-size: 14px;
+}
+
+.delete-btn:hover {
+    background: #e42525;
+    transform: translateY(-2px);
+}
+
+/* ===== АНИМАЦИЯ КАРТОЧКИ ===== */
+@keyframes card-appear {
+    from {
+        opacity: 0;
+        transform: scale(0.96) translateY(-10px);
     }
-h1{
+
+    to {
+        opacity: 1;
+        transform: scale(1) translateY(0);
+    }
+}
+
+/* ===== ОБЩАЯ СУММА ===== */
+#totalSum {
+    margin-top: 30px;
     font-size: 22px;
+    font-weight: 700;
+    text-align: center;
+    color: #333;
 }
-    .card {
-        width: 100%;
-        /* карточка занимает всю ширину */
+
+@media(max-width:368px) {
+    body {
+        padding: 20px;
     }
 
-    input[type="number"],
-    select,
-    button {
-        width: 100%;
-        font-size: 1em;
+    h1 {
+        margin-bottom: 15px;
+        font-size: 20px;
     }
 
-    .remove-btn {
-        margin-top: 12px;
+    #workTypeContainer label {
+        font-size: 14px;
+
+    }
+
+    #buttonsContainer {
+        flex-direction: column;
+        justify-content: center;
+        gap: 15px;
+        margin: 10px 0;
+    }
+
+    #buttonsContainer button {
+
+        font-size: 14px;
+
+    }
+
+    .card label {
+
+        font-size: 14px;
     }
 }

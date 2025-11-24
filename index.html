@@ -12,19 +12,26 @@
 
   <h1>Расчёт работ по установке дверей</h1>
 
-  <label>
-    Тип работы:
-    <select id="workType">
-      <option value="door">Дверь</option>
-      <option value="swing">Распашная</option>
-      <option value="slide">Откатная</option>
-      <option value="double-slide">Двойная откатная</option>
-      <option value="portal-cladding">Облицовка портала</option>
-      <option value="entrance-cladding">Облицовка входной</option>
-    </select>
-  </label>
+  <div id="workTypeContainer">
+    <label>
+      Тип работы:
+      <select id="workType">
+        <option value="door">Дверь</option>
+        <option value="swing">Распашная</option>
+        <option value="slide">Откатная</option>
+        <option value="double-slide">Двойная откатная</option>
+        <option value="portal-cladding">Облицовка портала</option>
+        <option value="entrance-cladding">Облицовка входной</option>
+      </select>
+    </label>
+  </div>
 
-  <button id="addCard">Добавить карточку</button>
+
+  <div id="buttonsContainer">
+    <button id="delCard">Удалить всё</button>
+    <button id="addCard">Добавить карточку</button>
+  </div>
+
   <div id="cardsContainer"></div>
   <div id="totalSum">Общая сумма: 0 ₽</div>
 
