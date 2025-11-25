@@ -13,7 +13,7 @@ let savedCards = JSON.parse(localStorage.getItem("door_calc_cards") || "[]");
 // Добавить карточку
 addCardBtn.addEventListener("click", () => {
   const type = workTypeSelect.value;
-  const { updatePrice } = createCard({ type });
+  const { card, updatePrice } = createCard({ type });
   updatePrice();
   updateTotalSum();
   saveState();
@@ -66,13 +66,7 @@ function createCard(config) {
   // ------------------ ФУНКЦИИ ДЛЯ ПОЛЕЙ ------------------
   function addSelect(key, labelText, items, parent = card) {
     const wrap = document.createElement("label");
-    wrap.style.display = "flex";
-    wrap.style.justifyContent = "space-between";
-    wrap.style.alignItems = "center";
-    wrap.style.marginBottom = "5px";
-
-    wrap.append(labelText + ": ");
-
+    wrap.textContent = labelText + ": ";
     const select = document.createElement("select");
     items.forEach(i => {
       const opt = document.createElement("option");
@@ -80,66 +74,39 @@ function createCard(config) {
       opt.textContent = i;
       select.appendChild(opt);
     });
-
     if (config[key] !== undefined) select.value = config[key];
-
     wrap.appendChild(select);
     parent.appendChild(wrap);
-
     select.addEventListener("change", () => {
       card.__config[key] = select.value;
       updatePrice(); updateTotalSum(); saveState();
     });
-
     return select;
   }
 
   function addNumber(key, labelText, parent = card) {
     const wrap = document.createElement("label");
-    wrap.style.display = "flex";
-    wrap.style.justifyContent = "space-between";
-    wrap.style.alignItems = "center";
-    wrap.style.marginBottom = "5px";
-
-    wrap.append(labelText + ": ");
-
+    wrap.textContent = labelText + ": ";
     const input = document.createElement("input");
     input.type = "number";
     if (config[key] !== undefined) input.value = config[key];
-
     wrap.appendChild(input);
     parent.appendChild(wrap);
-
     input.addEventListener("input", () => {
       card.__config[key] = input.value;
       updatePrice(); updateTotalSum(); saveState();
     });
-
     return input;
   }
 
   function addCheckbox(key, labelText, parent = card) {
     const wrap = document.createElement("label");
-    wrap.style.display = "flex";
-    wrap.style.justifyContent = "space-between";
-    wrap.style.alignItems = "center";
-    wrap.style.marginBottom = "5px";
-
+    wrap.textContent = labelText;
     const input = document.createElement("input");
     input.type = "checkbox";
-    input.style.width = "24px";
-    input.style.height = "24px";
-    input.style.border = "none";
-    input.style.cursor = "pointer";
-    input.style.flexShrink = "0";
-    input.style.accentColor = "#4CAF50";
-
     if (config[key]) input.checked = true;
-
-    wrap.append(labelText);
     wrap.appendChild(input);
     parent.appendChild(wrap);
-
     input.addEventListener("change", () => {
       card.__config[key] = input.checked;
       if (key === "portalCheck") {
@@ -148,7 +115,6 @@ function createCard(config) {
       }
       updatePrice(); updateTotalSum(); saveState();
     });
-
     return input;
   }
 
@@ -165,7 +131,6 @@ function createCard(config) {
     depth = addNumber("depth", "Глубина проёма (мм)");
     trimSides = addSelect("trimSides", "Наличник", ["0", "1", "2"]);
     trimCut = addSelect("trimCut", "Пил наличника (м)", ["0", "1", "2", "3", "4", "5", "6", "7", "8"]);
-
     if (type === "swing") {
       naschelSides = addSelect("naschelSides", "Нащельник", ["0", "1", "2"]);
       rigelCount = addSelect("rigelCount", "Врезка ригеля", ["0", "1", "2"]);
@@ -183,8 +148,8 @@ function createCard(config) {
   }
 
   if (type === "slide" || type === "double-slide") {
-    handleCount = addNumber("handleCount", "Врезка ручек (шт)");
-    gardinaWidth = addNumber("gardinaWidth", "Ширина гардины (см)");
+    handleCount = addSelect("handleCount", "Врезка ручек (пара)", ["0", "1", "2"]);
+    gardinaWidth = addNumber("gardinaWidth", "Длинна гардины (см)");
     lockCheck = addCheckbox("lockCheck", "Замок");
     portalCheck = addCheckbox("portalCheck", "Облицовка портала");
 
@@ -223,20 +188,29 @@ function createCard(config) {
 
   // ------------------ ФУНКЦИИ РАСЧЁТА ------------------
   function depthPrice(d) {
-    if (!d) return 0;
     d = Number(d);
-    if (d > 0 && d <= 200) return base * 0.3;
-    if (d > 200) return base * 0.3 + base * 0.3 * (d - 200) * 0.005;
+    if (!d) return 0;
+    if (d > 85 && d <= 150) return base * 0.4;
+    if (d > 150) return base * 0.4 + base * 0.4 * (d - 150) * 0.005;
+    return 0;
+  }
+
+  function portalDepthPrice(d) {
+    d = Number(d);
+    if (d > 150) return base * (d - 150) * 0.002;
     return 0;
   }
 
   function updatePrice() {
     let total = base;
 
+    // Увеличение базовой цены для распашной и двойной откатной
+    if (type === "swing" || type === "double-slide") total *= 1.5;
+
     function hingePrice() { if (!hingeType) return 0; let k = hingeType.value === "врезная" ? 0.2 : 0.1; return base * k * Number(hingeCount.value || 0); }
     function lockPrice() { if (!lockType) return 0; if (lockType.value === "замок" || lockType.value === "защелка+задвижка") return base * 0.4; if (lockType.value === "защелка") return base * 0.2; return 0; }
     function trimPrice() { if (!trimSides) return 0; let sides = trimSides.type === "checkbox" ? (trimSides.checked ? 1 : 0) : Number(trimSides.value || 0); return base * 0.1 * sides; }
-    function trimCutPrice() { return trimCut ? base * 0.05 * Number(trimCut.value || 0) : 0; }
+    function trimCutPrice() { return trimCut ? base * 0.04 * Number(trimCut.value || 0) : 0; }
     function naschelPrice() { return naschelSides ? base * 0.1 * Number(naschelSides.value || 0) : 0; }
     function rigelPrice() { return rigelCount ? base * 0.2 * Number(rigelCount.value || 0) : 0; }
     function handlePrice() { return handleCount ? base * 0.2 * Number(handleCount.value || 0) : 0; }
@@ -244,13 +218,20 @@ function createCard(config) {
     function slideLockPrice() { return lockCheck && lockCheck.checked ? base * 0.4 : 0; }
     function slidePortalPrice() {
       if (!portalCheck || !portalCheck.checked) return 0;
-      let sum = base;
-      if (p_depth) sum += depthPrice(p_depth.value);
+      let sum = base; // добавляем base при включённом портале
+      if (p_depth) sum += portalDepthPrice(p_depth.value);
       if (p_sides) sum += base * 0.1 * Number(p_sides.value || 0);
       return sum;
     }
 
-    if (depth) total += depthPrice(depth.value);
+    // Для portal/entrance-cladding
+    function portalCladdingPrice() { if (depth) return portalDepthPrice(depth.value); return 0; }
+
+    if (depth) {
+      if (type === "portal-cladding" || type === "entrance-cladding") total += portalCladdingPrice();
+      else total += depthPrice(depth.value);
+    }
+
     total += hingePrice() + lockPrice() + trimPrice() + trimCutPrice() + naschelPrice() + rigelPrice() + handlePrice() + gardinaPrice() + slideLockPrice() + slidePortalPrice();
 
     priceBlock.textContent = `Стоимость: ${Math.round(total)} ₽`;
@@ -259,15 +240,12 @@ function createCard(config) {
 
   updatePrice();
   cardsContainer.prepend(card);
-
   return { card, updatePrice };
 }
 
 // ------------------ ОБЩАЯ СУММА ------------------
 function updateTotalSum() {
   let sum = 0;
-  document.querySelectorAll(".card").forEach(card => {
-    sum += card.__config.price || 0;
-  });
+  document.querySelectorAll(".card").forEach(card => { sum += card.__config.price || 0; });
   totalSumBlock.textContent = `Общая сумма: ${sum} ₽`;
 }
