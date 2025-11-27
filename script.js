@@ -10,10 +10,12 @@ let savedCards = JSON.parse(localStorage.getItem("door_calc_cards") || "[]");
 
 // ------------------ СОБЫТИЯ ------------------
 
-// Добавить карточку
+// Добавить карточку (новые — вверху)
 addCardBtn.addEventListener("click", () => {
   const type = workTypeSelect.value;
   const { card, updatePrice } = createCard({ type });
+  // вставляем новую карточку в начало
+  cardsContainer.prepend(card);
   updatePrice();
   updateTotalSum();
   saveState();
@@ -28,9 +30,13 @@ delCardBtn.addEventListener("click", () => {
 });
 
 // Восстановление карточек при загрузке
+// Вставляем сохранённые карточки в порядке массива (savedCards[0] — самая свежая)
+// чтобы после загрузки сверху были новые, снизу — старые
 window.onload = () => {
   savedCards.forEach(cfg => {
-    const { updatePrice } = createCard(cfg);
+    const { card, updatePrice } = createCard(cfg);
+    // при восстановлении вставляем в конец — чтобы порядок в DOM совпадал с savedCards
+    cardsContainer.appendChild(card);
     updatePrice();
   });
   updateTotalSum();
@@ -39,6 +45,7 @@ window.onload = () => {
 // ------------------ СОХРАНЕНИЕ ------------------
 function saveState() {
   const cards = [];
+  // собираем в порядке DOM сверху вниз
   document.querySelectorAll(".card").forEach(card => {
     cards.push(card.__config);
   });
@@ -50,7 +57,7 @@ function createCard(config) {
   const type = config.type;
   const card = document.createElement("div");
   card.className = "card";
-  card.__config = JSON.parse(JSON.stringify(config));
+  card.__config = JSON.parse(JSON.stringify(config || {})); // копия конфигурации
 
   const title = {
     "door": "Дверь",
@@ -58,15 +65,22 @@ function createCard(config) {
     "slide": "Откатная",
     "double-slide": "Двойная откатная",
     "portal-cladding": "Облицовка портала",
-    "entrance-cladding": "Облицовка входной"
-  }[type];
+    "entrance-cladding": "Облицовка входной",
+    "extra": "Дополнительные работы"
+  }[type] || "Карточка";
 
   card.innerHTML = `<h3>${title}</h3>`;
 
-  // ------------------ ФУНКЦИИ ДЛЯ ПОЛЕЙ ------------------
+  // ---- helpers для полей ----
   function addSelect(key, labelText, items, parent = card) {
     const wrap = document.createElement("label");
-    wrap.textContent = labelText + ": ";
+    wrap.style.display = "flex";
+    wrap.style.justifyContent = "space-between";
+    wrap.style.alignItems = "center";
+    wrap.style.marginBottom = "6px";
+
+    const text = document.createElement("span");
+    text.textContent = labelText + ":";
     const select = document.createElement("select");
     items.forEach(i => {
       const opt = document.createElement("option");
@@ -74,9 +88,12 @@ function createCard(config) {
       opt.textContent = i;
       select.appendChild(opt);
     });
-    if (config[key] !== undefined) select.value = config[key];
+    if (config && config[key] !== undefined) select.value = config[key];
+
+    wrap.appendChild(text);
     wrap.appendChild(select);
     parent.appendChild(wrap);
+
     select.addEventListener("change", () => {
       card.__config[key] = select.value;
       updatePrice(); updateTotalSum(); saveState();
@@ -86,12 +103,22 @@ function createCard(config) {
 
   function addNumber(key, labelText, parent = card) {
     const wrap = document.createElement("label");
-    wrap.textContent = labelText + ": ";
+    wrap.style.display = "flex";
+    wrap.style.justifyContent = "space-between";
+    wrap.style.alignItems = "center";
+    wrap.style.marginBottom = "6px";
+
+    const text = document.createElement("span");
+    text.textContent = labelText + ":";
     const input = document.createElement("input");
     input.type = "number";
-    if (config[key] !== undefined) input.value = config[key];
+    input.style.width = "120px";
+    if (config && config[key] !== undefined) input.value = config[key];
+
+    wrap.appendChild(text);
     wrap.appendChild(input);
     parent.appendChild(wrap);
+
     input.addEventListener("input", () => {
       card.__config[key] = input.value;
       updatePrice(); updateTotalSum(); saveState();
@@ -101,12 +128,28 @@ function createCard(config) {
 
   function addCheckbox(key, labelText, parent = card) {
     const wrap = document.createElement("label");
-    wrap.textContent = labelText;
+    wrap.style.display = "flex";
+    wrap.style.justifyContent = "space-between";
+    wrap.style.alignItems = "center";
+    wrap.style.marginBottom = "6px";
+
+    const text = document.createElement("span");
+    text.textContent = labelText;
+
     const input = document.createElement("input");
     input.type = "checkbox";
-    if (config[key]) input.checked = true;
+    input.style.width = "22px";
+    input.style.height = "22px";
+    input.style.flexShrink = "0";
+    input.style.marginLeft = "8px";
+    input.style.border = "none";
+    input.style.outline = "none";
+    if (config && config[key]) input.checked = true;
+
+    wrap.appendChild(text);
     wrap.appendChild(input);
     parent.appendChild(wrap);
+
     input.addEventListener("change", () => {
       card.__config[key] = input.checked;
       if (key === "portalCheck") {
@@ -118,19 +161,24 @@ function createCard(config) {
     return input;
   }
 
-  // ------------------ ПОЛЯ КАРТОЧКИ ------------------
+  // ---- поля карточки ----
   let hingeType, hingeCount, lockType, depth, trimSides, trimCut;
   let naschelSides, rigelCount;
-  let handleCount, gardinaWidth, lockCheck, portalCheck;
+  let handleCount, gardinaWidth, lockCheck, portalCheck, doborCheck;
   let portalWrap, p_depth, p_sides;
 
   if (type === "door" || type === "swing") {
     hingeType = addSelect("hingeType", "Тип петель", ["врезная", "накладная"]);
     hingeCount = addSelect("hingeCount", "Количество петель", ["0", "1", "2", "3", "4", "5", "6", "7", "8"]);
     lockType = addSelect("lockType", "Тип замка", ["замок", "защелка", "защелка+задвижка"]);
+
+    // --- ДОБОР после типа замка ---
+    doborCheck = addCheckbox("doborCheck", "Добор");
+
     depth = addNumber("depth", "Глубина проёма (мм)");
     trimSides = addSelect("trimSides", "Наличник", ["0", "1", "2"]);
     trimCut = addSelect("trimCut", "Пил наличника (м)", ["0", "1", "2", "3", "4", "5", "6", "7", "8"]);
+
     if (type === "swing") {
       naschelSides = addSelect("naschelSides", "Нащельник", ["0", "1", "2"]);
       rigelCount = addSelect("rigelCount", "Врезка ригеля", ["0", "1", "2"]);
@@ -186,60 +234,82 @@ function createCard(config) {
   });
   card.appendChild(removeBtn);
 
-  // ------------------ ФУНКЦИИ РАСЧЁТА ------------------
-  function depthPrice(d) {
-    d = Number(d);
-    if (!d) return 0;
-    if (d > 85 && d <= 150) return base * 0.4;
-    if (d > 150) return base * 0.4 + base * 0.4 * (d - 150) * 0.005;
+  // ------------------ ЛОГИКА ГЛУБИНЫ (универсальная) ------------------
+  function depthOver150Price(d) {
+    const depthNum = Number(d) || 0;
+    if (depthNum > 150) return base * (depthNum - 150) * 0.002;
     return 0;
   }
 
-  function portalDepthPrice(d) {
-    d = Number(d);
-    if (d > 150) return base * (d - 150) * 0.002;
-    return 0;
+  // ------------------ ФУНКЦИИ РАСЧЁТА ПО ЭЛЕМЕНТАМ ------------------
+  function hingePrice() { if (!hingeType) return 0; const k = hingeType.value === "врезная" ? 0.2 : 0.1; return base * k * Number(hingeCount.value || 0); }
+  function lockPrice() { if (!lockType) return 0; if (lockType.value === "замок" || lockType.value === "защелка+задвижка") return base * 0.4; if (lockType.value === "защелка") return base * 0.2; return 0; }
+  function trimPrice() { if (!trimSides) return 0; const sides = trimSides.type === "checkbox" ? (trimSides.checked ? 1 : 0) : Number(trimSides.value || 0); return base * 0.1 * sides; }
+  function trimCutPrice() { return trimCut ? base * 0.04 * Number(trimCut.value || 0) : 0; }
+  function naschelPrice() { return naschelSides ? base * 0.1 * Number(naschelSides.value || 0) : 0; }
+  function rigelPrice() { return rigelCount ? base * 0.2 * Number(rigelCount.value || 0) : 0; }
+  function handlePrice() { return handleCount ? base * 0.2 * Number(handleCount.value || 0) : 0; }
+  function gardinaPrice() { return gardinaWidth ? base * 0.2 * (Number(gardinaWidth.value || 0) / 100) : 0; }
+  function slideLockPrice() { return lockCheck && lockCheck.checked ? base * 0.4 : 0; }
+  function slidePortalPrice() {
+    if (!portalCheck || !portalCheck.checked) return 0;
+    let sum = base; // добавляем base при включённом портале
+    if (p_depth) sum += depthOver150Price(p_depth.value);
+    if (p_sides) sum += base * 0.1 * Number(p_sides.value || 0);
+    return sum;
   }
 
+  // ------------------ ОСНОВНОЙ РАСЧЁТ ------------------
   function updatePrice() {
-    let total = base;
+    // базовая цена с учётом типа (swing и double-slide *1.5)
+    let effectiveBase = base;
+    if (type === "swing" || type === "double-slide") effectiveBase *= 1.5;
 
-    // Увеличение базовой цены для распашной и двойной откатной
-    if (type === "swing" || type === "double-slide") total *= 1.5;
+    // Начинаем с effectiveBase
+    let total = effectiveBase;
 
-    function hingePrice() { if (!hingeType) return 0; let k = hingeType.value === "врезная" ? 0.2 : 0.1; return base * k * Number(hingeCount.value || 0); }
-    function lockPrice() { if (!lockType) return 0; if (lockType.value === "замок" || lockType.value === "защелка+задвижка") return base * 0.4; if (lockType.value === "защелка") return base * 0.2; return 0; }
-    function trimPrice() { if (!trimSides) return 0; let sides = trimSides.type === "checkbox" ? (trimSides.checked ? 1 : 0) : Number(trimSides.value || 0); return base * 0.1 * sides; }
-    function trimCutPrice() { return trimCut ? base * 0.04 * Number(trimCut.value || 0) : 0; }
-    function naschelPrice() { return naschelSides ? base * 0.1 * Number(naschelSides.value || 0) : 0; }
-    function rigelPrice() { return rigelCount ? base * 0.2 * Number(rigelCount.value || 0) : 0; }
-    function handlePrice() { return handleCount ? base * 0.2 * Number(handleCount.value || 0) : 0; }
-    function gardinaPrice() { return gardinaWidth ? base * 0.2 * (Number(gardinaWidth.value || 0) / 100) : 0; }
-    function slideLockPrice() { return lockCheck && lockCheck.checked ? base * 0.4 : 0; }
-    function slidePortalPrice() {
-      if (!portalCheck || !portalCheck.checked) return 0;
-      let sum = base; // добавляем base при включённом портале
-      if (p_depth) sum += portalDepthPrice(p_depth.value);
-      if (p_sides) sum += base * 0.1 * Number(p_sides.value || 0);
-      return sum;
-    }
-
-    // Для portal/entrance-cladding
-    function portalCladdingPrice() { if (depth) return portalDepthPrice(depth.value); return 0; }
-
+    // Обработка глубины: везде по унифицированному правилу (depth>150)
     if (depth) {
-      if (type === "portal-cladding" || type === "entrance-cladding") total += portalCladdingPrice();
-      else total += depthPrice(depth.value);
+      // для откатных и облицовки применяется та же формула
+      total += depthOver150Price(depth.value);
     }
 
-    total += hingePrice() + lockPrice() + trimPrice() + trimCutPrice() + naschelPrice() + rigelPrice() + handlePrice() + gardinaPrice() + slideLockPrice() + slidePortalPrice();
+    // Добавляем элементы в зависимости от типа
+    if (type === "door" || type === "swing") {
+      total += hingePrice();
+      total += lockPrice();
+      // ДОБОР: добавляет base * 0.4 (заметь — используем base, не effectiveBase)
+      total += doborCheck && doborCheck.checked ? base * 0.4 : 0;
+      total += trimPrice();
+      total += trimCutPrice();
+      total += naschelPrice();
+      total += rigelPrice();
+    }
 
-    priceBlock.textContent = `Стоимость: ${Math.round(total)} ₽`;
-    card.__config.price = Math.round(total);
+    if (type === "slide" || type === "double-slide") {
+      total += handlePrice();
+      total += gardinaPrice();
+      total += slideLockPrice();
+      // Если включена облицовка портала — добавляем base + глубину и наличники портала
+      total += slidePortalPrice();
+    }
+
+    if (type === "portal-cladding" || type === "entrance-cladding") {
+      // для этих типов глубина уже добавлена выше; при наличии наличника добавляем
+      total += trimPrice();
+    }
+
+    // Округление и запись
+    const rounded = Math.round(total);
+    priceBlock.textContent = `Стоимость: ${rounded} ₽`;
+    card.__config.price = rounded;
   }
 
+  // Первичный расчёт
   updatePrice();
-  cardsContainer.prepend(card);
+
+  // Возвращаем элемент карточки и функцию пересчёта, но НЕ вставляем карточку в DOM здесь.
+  // Вставка делается вызывающей стороной (add или window.onload), чтобы контролировать порядок.
   return { card, updatePrice };
 }
 
