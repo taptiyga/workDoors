@@ -195,7 +195,7 @@ function createCard(config) {
   // Откатные
   if (type === "slide" || type === "double-slide") {
     handleCount = addSelect("handleCount", "Врезка ручек (пара)", ["1", "2", "0"]);
-    gardinaWidth = addNumber("gardinaWidth", "Длинна гардины (см)");
+    gardinaWidth = addNumber("gardinaWidth", "Длинна гардины (м)");
     lockCheck = addCheckbox("lockCheck", "Замок");
     portalCheck = addCheckbox("portalCheck", "Облицовка портала");
 
@@ -250,7 +250,7 @@ function createCard(config) {
   function naschelPrice() { return naschelSides ? base * 0.1 * Number(naschelSides.value || 0) : 0; }
   function rigelPrice() { return rigelCount ? base * 0.2 * Number(rigelCount.value || 0) : 0; }
   function handlePrice() { return handleCount ? base * 0.2 * Number(handleCount.value || 0) : 0; }
-  function gardinaPrice() { return gardinaWidth ? base * 0.2 * (Number(gardinaWidth.value || 0) / 100) : 0; }
+  function gardinaPrice() { return gardinaWidth ? base * 0.25 * (Number(gardinaWidth.value || 0)) : 0; }
   function slideLockPrice() { return lockCheck && lockCheck.checked ? base * 0.4 : 0; }
   function slidePortalPrice() {
     if (!portalCheck || !portalCheck.checked) return 0;
