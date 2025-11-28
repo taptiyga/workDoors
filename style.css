@@ -94,6 +94,15 @@ h1 {
     border: 1px solid #eee;
     animation: card-appear 0.35s ease;
     transition: 0.3s;
+ 
+            background-image: url(./door-bg.jpg);
+            background-size: 50%;
+            /* растянуть на всю страницу */
+            background-repeat: no-repeat;
+            /* без повторений */
+            background-position: center right
+            /* по центру */
+      
 }
 
 .card:hover {
