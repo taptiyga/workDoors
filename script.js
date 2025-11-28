@@ -10,11 +10,10 @@ let savedCards = JSON.parse(localStorage.getItem("door_calc_cards") || "[]");
 
 // ------------------ СОБЫТИЯ ------------------
 
-// Добавить карточку (новые — вверху)
+// Добавить карточку
 addCardBtn.addEventListener("click", () => {
   const type = workTypeSelect.value;
   const { card, updatePrice } = createCard({ type });
-  // вставляем новую карточку в начало
   cardsContainer.prepend(card);
   updatePrice();
   updateTotalSum();
@@ -30,12 +29,9 @@ delCardBtn.addEventListener("click", () => {
 });
 
 // Восстановление карточек при загрузке
-// Вставляем сохранённые карточки в порядке массива (savedCards[0] — самая свежая)
-// чтобы после загрузки сверху были новые, снизу — старые
 window.onload = () => {
   savedCards.forEach(cfg => {
     const { card, updatePrice } = createCard(cfg);
-    // при восстановлении вставляем в конец — чтобы порядок в DOM совпадал с savedCards
     cardsContainer.appendChild(card);
     updatePrice();
   });
@@ -45,7 +41,6 @@ window.onload = () => {
 // ------------------ СОХРАНЕНИЕ ------------------
 function saveState() {
   const cards = [];
-  // собираем в порядке DOM сверху вниз
   document.querySelectorAll(".card").forEach(card => {
     cards.push(card.__config);
   });
@@ -57,9 +52,9 @@ function createCard(config) {
   const type = config.type;
   const card = document.createElement("div");
   card.className = "card";
-  card.__config = JSON.parse(JSON.stringify(config || {})); // копия конфигурации
+  card.__config = JSON.parse(JSON.stringify(config || {}));
 
-  const title = {
+  const titles = {
     "door": "Дверь",
     "swing": "Распашная",
     "slide": "Откатная",
@@ -67,11 +62,10 @@ function createCard(config) {
     "portal-cladding": "Облицовка портала",
     "entrance-cladding": "Облицовка входной",
     "extra": "Дополнительные работы"
-  }[type] || "Карточка";
+  };
+  card.innerHTML = `<h3>${titles[type] || "Карточка"}</h3>`;
 
-  card.innerHTML = `<h3>${title}</h3>`;
-
-  // ---- helpers для полей ----
+  // ---- Helpers ----
   function addSelect(key, labelText, items, parent = card) {
     const wrap = document.createElement("label");
     wrap.style.display = "flex";
@@ -144,6 +138,7 @@ function createCard(config) {
     input.style.marginLeft = "8px";
     input.style.border = "none";
     input.style.outline = "none";
+
     if (config && config[key]) input.checked = true;
 
     wrap.appendChild(text);
@@ -161,42 +156,45 @@ function createCard(config) {
     return input;
   }
 
-  // ---- поля карточки ----
+  // ---- Поля карточки ----
   let hingeType, hingeCount, lockType, depth, trimSides, trimCut;
   let naschelSides, rigelCount;
   let handleCount, gardinaWidth, lockCheck, portalCheck, doborCheck;
   let portalWrap, p_depth, p_sides;
 
+  // Двери и распашные
   if (type === "door" || type === "swing") {
     hingeType = addSelect("hingeType", "Тип петель", ["врезная", "накладная"]);
-    hingeCount = addSelect("hingeCount", "Количество петель", ["0", "1", "2", "3", "4", "5", "6", "7", "8"]);
+    hingeCount = addSelect("hingeCount", "Количество петель", ["2", "3", "4", "5", "6", "7", "8"]);
     lockType = addSelect("lockType", "Тип замка", ["замок", "защелка", "защелка+задвижка"]);
-
-    // --- ДОБОР после типа замка ---
     doborCheck = addCheckbox("doborCheck", "Добор");
 
     depth = addNumber("depth", "Глубина проёма (мм)");
-    trimSides = addSelect("trimSides", "Наличник", ["0", "1", "2"]);
+    trimSides = addSelect("trimSides", "Наличник", ["2", "1", "0"]);
     trimCut = addSelect("trimCut", "Пил наличника (м)", ["0", "1", "2", "3", "4", "5", "6", "7", "8"]);
 
     if (type === "swing") {
-      naschelSides = addSelect("naschelSides", "Нащельник", ["0", "1", "2"]);
-      rigelCount = addSelect("rigelCount", "Врезка ригеля", ["0", "1", "2"]);
+      naschelSides = addSelect("naschelSides", "Нащельник", ["1", "2", "0"]);
+      rigelCount = addSelect("rigelCount", "Врезка ригеля", ["1", "2", "0"]);
     }
   }
 
+  // Облицовка портала
   if (type === "portal-cladding") {
     depth = addNumber("depth", "Глубина проёма (мм)");
-    trimSides = addSelect("trimSides", "Наличник", ["0", "1", "2"]);
+    trimSides = addSelect("trimSides", "Наличник", ["2", "1", "0"]);
   }
 
+  // Облицовка входной — чек включён по умолчанию
   if (type === "entrance-cladding") {
+    if (config.trimSides === undefined) config.trimSides = true;
     depth = addNumber("depth", "Глубина проёма (мм)");
     trimSides = addCheckbox("trimSides", "Наличник");
   }
 
+  // Откатные
   if (type === "slide" || type === "double-slide") {
-    handleCount = addSelect("handleCount", "Врезка ручек (пара)", ["0", "1", "2"]);
+    handleCount = addSelect("handleCount", "Врезка ручек (пара)", ["1", "2", "0"]);
     gardinaWidth = addNumber("gardinaWidth", "Длинна гардины (см)");
     lockCheck = addCheckbox("lockCheck", "Замок");
     portalCheck = addCheckbox("portalCheck", "Облицовка портала");
@@ -207,23 +205,28 @@ function createCard(config) {
 
     function renderPortalInner() {
       portalWrap.innerHTML = "";
+      if (card.__config.p_sides === undefined) card.__config.p_sides = "2";
+
       p_depth = addNumber("p_depth", "Глубина проёма (мм)", portalWrap);
-      p_depth.value = card.__config.p_depth || "";
-      p_sides = addSelect("p_sides", "Наличник", ["0", "1", "2"], portalWrap);
-      p_sides.value = card.__config.p_sides || "0";
+      if (card.__config.p_depth) p_depth.value = card.__config.p_depth;
+
+      p_sides = addSelect("p_sides", "Наличник", ["2", "1", "0"], portalWrap);
+      p_sides.value = card.__config.p_sides;
+
+      card.__config.p_sides = p_sides.value;
       updatePrice();
     }
 
     if (card.__config.portalCheck) renderPortalInner();
   }
 
-  // ------------------ БЛОК ЦЕНЫ ------------------
+  // ---- Блок цены ----
   const priceBlock = document.createElement("div");
   priceBlock.style.marginTop = "10px";
   priceBlock.style.fontWeight = "bold";
   card.appendChild(priceBlock);
 
-  // ------------------ УДАЛЕНИЕ КАРТОЧКИ ------------------
+  // ---- Кнопка удаления ----
   const removeBtn = document.createElement("button");
   removeBtn.textContent = "Удалить";
   removeBtn.className = "delete-btn";
@@ -234,14 +237,12 @@ function createCard(config) {
   });
   card.appendChild(removeBtn);
 
-  // ------------------ ЛОГИКА ГЛУБИНЫ (универсальная) ------------------
+  // ---- Расчёт цены ----
   function depthOver150Price(d) {
     const depthNum = Number(d) || 0;
-    if (depthNum > 150) return base * (depthNum - 150) * 0.002;
-    return 0;
+    return depthNum > 150 ? base * (depthNum - 150) * 0.002 : 0;
   }
 
-  // ------------------ ФУНКЦИИ РАСЧЁТА ПО ЭЛЕМЕНТАМ ------------------
   function hingePrice() { if (!hingeType) return 0; const k = hingeType.value === "врезная" ? 0.2 : 0.1; return base * k * Number(hingeCount.value || 0); }
   function lockPrice() { if (!lockType) return 0; if (lockType.value === "замок" || lockType.value === "защелка+задвижка") return base * 0.4; if (lockType.value === "защелка") return base * 0.2; return 0; }
   function trimPrice() { if (!trimSides) return 0; const sides = trimSides.type === "checkbox" ? (trimSides.checked ? 1 : 0) : Number(trimSides.value || 0); return base * 0.1 * sides; }
@@ -253,67 +254,43 @@ function createCard(config) {
   function slideLockPrice() { return lockCheck && lockCheck.checked ? base * 0.4 : 0; }
   function slidePortalPrice() {
     if (!portalCheck || !portalCheck.checked) return 0;
-    let sum = base; // добавляем base при включённом портале
+    let sum = base;
     if (p_depth) sum += depthOver150Price(p_depth.value);
     if (p_sides) sum += base * 0.1 * Number(p_sides.value || 0);
     return sum;
   }
 
-  // ------------------ ОСНОВНОЙ РАСЧЁТ ------------------
   function updatePrice() {
-    // базовая цена с учётом типа (swing и double-slide *1.5)
     let effectiveBase = base;
     if (type === "swing" || type === "double-slide") effectiveBase *= 1.5;
 
-    // Начинаем с effectiveBase
     let total = effectiveBase;
+    if (depth) total += depthOver150Price(depth.value);
 
-    // Обработка глубины: везде по унифицированному правилу (depth>150)
-    if (depth) {
-      // для откатных и облицовки применяется та же формула
-      total += depthOver150Price(depth.value);
-    }
-
-    // Добавляем элементы в зависимости от типа
     if (type === "door" || type === "swing") {
-      total += hingePrice();
-      total += lockPrice();
-      // ДОБОР: добавляет base * 0.4 (заметь — используем base, не effectiveBase)
-      total += doborCheck && doborCheck.checked ? base * 0.4 : 0;
-      total += trimPrice();
-      total += trimCutPrice();
-      total += naschelPrice();
-      total += rigelPrice();
+      total += hingePrice() + lockPrice() + (doborCheck && doborCheck.checked ? base * 0.4 : 0);
+      total += trimPrice() + trimCutPrice() + naschelPrice() + rigelPrice();
     }
 
     if (type === "slide" || type === "double-slide") {
-      total += handlePrice();
-      total += gardinaPrice();
-      total += slideLockPrice();
-      // Если включена облицовка портала — добавляем base + глубину и наличники портала
-      total += slidePortalPrice();
+      total += handlePrice() + gardinaPrice() + slideLockPrice() + slidePortalPrice();
     }
 
     if (type === "portal-cladding" || type === "entrance-cladding") {
-      // для этих типов глубина уже добавлена выше; при наличии наличника добавляем
       total += trimPrice();
     }
 
-    // Округление и запись
     const rounded = Math.round(total);
     priceBlock.textContent = `Стоимость: ${rounded} ₽`;
     card.__config.price = rounded;
   }
 
-  // Первичный расчёт
   updatePrice();
 
-  // Возвращаем элемент карточки и функцию пересчёта, но НЕ вставляем карточку в DOM здесь.
-  // Вставка делается вызывающей стороной (add или window.onload), чтобы контролировать порядок.
   return { card, updatePrice };
 }
 
-// ------------------ ОБЩАЯ СУММА ------------------
+// ------------------ Общая сумма ------------------
 function updateTotalSum() {
   let sum = 0;
   document.querySelectorAll(".card").forEach(card => { sum += card.__config.price || 0; });
