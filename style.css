@@ -1,11 +1,12 @@
 /* ===== ОСНОВНОЕ ===== */
-*{
+* {
     margin: 0;
     padding: 0;
     box-sizing: border-box;
 }
+
 body {
-    padding: 50px 15px;
+    padding: 50px 10px;
     font-family: "Inter", sans-serif;
     background: #f4f4f7;
     color: #222;
@@ -20,7 +21,6 @@ h1 {
 #workTypeContainer {
     display: flex;
     justify-content: center;
-    margin-bottom: 20px;
 }
 
 #workTypeContainer label {
@@ -78,7 +78,7 @@ h1 {
     display: flex;
     flex-wrap: wrap;
     justify-content: center;
-    gap: 20px;
+    gap: 15px;
     max-width: 100%;
     margin: 0 auto;
 }
@@ -87,22 +87,19 @@ h1 {
 .card {
     width: 100%;
     max-width: 350px;
-    background: white;
     border-radius: 18px;
     padding: 20px;
     box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
     border: 1px solid #eee;
     animation: card-appear 0.35s ease;
     transition: 0.3s;
- 
-            background-image: url(./door-bg.jpg);
-            background-size: 50%;
-            /* растянуть на всю страницу */
-            background-repeat: no-repeat;
-            /* без повторений */
-            background-position: center right
-            /* по центру */
-      
+
+    background-image: url(./door-bg.jpg);
+    background-size: 50%;
+
+    background-repeat: no-repeat;
+
+    background-position: center right 2.52px
 }
 
 .card:hover {
@@ -125,10 +122,10 @@ h1 {
     padding: 8px 12px;
     border-radius: 10px;
     border: 1px solid #ccc;
-    width: 100%;
+    width: 50%;
     max-width: 140px;
-    /* min-width: 80px; */
     transition: 0.25s;
+    background-color: #fff;
 }
 
 .card input:focus,
@@ -193,27 +190,24 @@ h1 {
     text-align: center;
     color: #333;
 }
-
-@media(max-width:368px) {
+@media(max-width:400px) {
     body {
-        padding: 20px;
-    }
+            padding: 30px 10px;
+        }
+    
+        h1 {
+            margin-bottom: 15px;
+            font-size: 20px;
+        }
+}
+@media(max-width:368px) {
 
-    h1 {
-        margin-bottom: 15px;
-        font-size: 20px;
-    }
-
-    #workTypeContainer label {
-        font-size: 14px;
-
-    }
 
     #buttonsContainer {
         flex-direction: column;
         justify-content: center;
         gap: 15px;
-        margin: 10px 0;
+        margin: 20px 0;
     }
 
     #buttonsContainer button {
